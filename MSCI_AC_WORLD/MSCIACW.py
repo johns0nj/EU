@@ -43,15 +43,20 @@ with pd.ExcelFile('MSCIACW.xlsx') as xls:
 # 创建图表
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 7))
 
+# 定义颜色方案
+colors = ['#739CBF', '#00A3DF', '#00A3DF', '#0487D9', '#023859', '#022873', '#730237', '#E31837', '#E3EBF4']
+
 # 全球权重饼图
 global_df.plot.pie(y='权重（%）', labels=global_df['国家'], autopct='%1.1f%%',
-                   startangle=90, ax=ax1, legend=False, textprops={'fontsize': 20})
+                   startangle=90, ax=ax1, legend=False, textprops={'fontsize': 20},
+                   colors=colors[:len(global_df)])  # 使用前n个颜色
 ax1.set_title('全球权重分布', fontsize=24)
 ax1.set_ylabel('')
 
 # 欧洲权重饼图
 europe_df.plot.pie(y='权重（%）', labels=europe_df['国家'], autopct='%1.1f%%',
-                   startangle=90, ax=ax2, legend=False, textprops={'fontsize': 20})
+                   startangle=90, ax=ax2, legend=False, textprops={'fontsize': 20},
+                   colors=colors[:len(europe_df)])  # 使用前n个颜色
 ax2.set_title('欧洲权重分布', fontsize=24)
 ax2.set_ylabel('')
 

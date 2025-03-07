@@ -43,13 +43,17 @@ with pd.ExcelFile('MSCIACW.xlsx') as xls:
 # 创建图表
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
 
+# 定义颜色方案
+colors = ['#739CBF', '#00A3DF', '#00A3DF', '#0487D9', '#023859', '#022873', '#730237', '#E31837', '#E3EBF4']
+
 # 全球权重环形图
 wedges, texts, autotexts = ax1.pie(global_df['权重（%）'], 
                                    labels=global_df['国家'], 
                                    autopct='%1.1f%%',
                                    startangle=90,
                                    pctdistance=0.85,
-                                   textprops={'fontsize': 20.8})
+                                   textprops={'fontsize': 20.8},
+                                   colors=colors[:len(global_df)])  # 使用前n个颜色
 ax1.set_title('全球权重分布', fontsize=31.2, pad=20)
 # 添加中心圆
 centre_circle = plt.Circle((0, 0), 0.70, fc='white')
@@ -61,7 +65,8 @@ wedges, texts, autotexts = ax2.pie(europe_df['权重（%）'],
                                    autopct='%1.1f%%',
                                    startangle=90,
                                    pctdistance=0.85,
-                                   textprops={'fontsize': 20.8})
+                                   textprops={'fontsize': 20.8},
+                                   colors=colors[:len(europe_df)])  # 使用前n个颜色
 ax2.set_title('欧洲权重分布', fontsize=31.2, pad=20)
 # 添加中心圆
 centre_circle = plt.Circle((0, 0), 0.70, fc='white')
