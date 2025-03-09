@@ -2,21 +2,27 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import numpy as np
+import time
 
 # 设置中文字体
 rcParams['font.sans-serif'] = ['SimHei']  # 使用黑体显示中文
 rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
-# 增大默认字体大小
-rcParams['font.size'] = 14  # 默认字体大小增大
+# 调整默认字体大小
+rcParams['font.size'] = 22.5  # 默认字体大小再缩小10%（原为25）
 
 # 读取 Excel 文件
 df = pd.read_excel('PE.xlsx', parse_dates=['Date'], index_col='Date')
 
-# 选择过去10年的数据
-df = df.last('10Y')
+# 检查可用列名
+print("可用列名：", df.columns.tolist())
 
-# 需要计算的指数
-indices = ['MSCI AC World', 'STOXX 50', 'MSCI China', 'SPX', 'MSCI Japan']
+# 修改时间过滤方式
+end_date = pd.Timestamp.now()
+start_date = end_date - pd.DateOffset(years=10)
+df = df.loc[start_date:end_date]
+
+# 需要计算的指数（根据实际列名调整）
+indices = ['MSCI AC World', 'SPX', 'STOXX 50', 'STOXX 600', 'HS INDEX', 'MSCI JAPAN']
 
 # 计算结果
 results = {
@@ -28,6 +34,10 @@ results = {
 }
 
 for index in indices:
+    if index not in df.columns:
+        print(f"警告：列 '{index}' 不存在，跳过计算")
+        continue
+        
     # 计算均值
     mean = df[index].mean()
     # 获取最小值和最大值
@@ -50,7 +60,7 @@ results_df = pd.DataFrame(results)
 print(results_df)
 
 # 绘制图表
-fig, ax = plt.subplots(figsize=(14, 10))  # 增大图表尺寸
+fig, ax = plt.subplots(figsize=(24, 13.5))  # 16:9比例 (24/13.5=1.777)
 
 # 设置背景色为白色
 fig.patch.set_facecolor('white')
@@ -63,10 +73,10 @@ y_max = max(results_df['过去10年最大值']) + 2
 ax.set_ylim(y_min, y_max)
 
 # 绘制范围条形图
-x = np.arange(len(indices))
+x = np.arange(len(results_df))  # 使用 results_df 的长度而不是 indices
 bar_width = 0.6
 
-for i, idx in enumerate(indices):
+for i in range(len(results_df)):  # 使用 results_df 的长度进行循环
     # 绘制10年范围的浅蓝色条形
     min_val = results_df.loc[i, '过去10年最小值']
     max_val = results_df.loc[i, '过去10年最大值']
@@ -90,32 +100,32 @@ legend_elements = [
     Line2D([0], [0], marker='D', color='w', markerfacecolor='#58D68D', 
            markersize=15, label='当前值')  # 改为钻石形状(D)
 ]
-ax.legend(handles=legend_elements, loc='upper right', frameon=True, fontsize=24)  # 增大图例字体
+ax.legend(handles=legend_elements, loc='upper right', frameon=True, fontsize=38.7)  # 缩小图例字体（原为43）
 
 # 设置x轴刻度和标签
 ax.set_xticks(x)
-ax.set_xticklabels(indices, fontsize=24)  # 增大x轴标签字体
+ax.set_xticklabels(results_df['指数'], fontsize=38.7)  # 缩小x轴标签字体（原为43）
 
 # 设置y轴刻度
 y_ticks = np.arange(y_min, y_max, 2)
 ax.set_yticks(y_ticks)
-ax.set_yticklabels([f"{int(tick) if tick.is_integer() else tick}" for tick in y_ticks], fontsize=24)  # 增大y轴标签字体
+ax.set_yticklabels([f"{int(tick) if tick.is_integer() else tick}" for tick in y_ticks], fontsize=38.7)  # 缩小y轴标签字体（原为43）
 
 # 添加网格线（仅y轴）
 ax.yaxis.grid(True, linestyle='-', alpha=0.2, color='gray')
 
 # 设置标题和标签
 # ax.set_title('主要指数的前向市盈率比较', fontsize=32, fontweight='bold')  # 增大标题字体
-ax.set_ylabel('前向市盈率', fontsize=28)  # 增大y轴标题字体
+ax.set_ylabel('前向市盈率', fontsize=45)  # 缩小y轴标题字体（原为50）
 
 # 添加注释说明
 plt.figtext(0.1, 0.01, 
             "数据来源: 彭博社, 截至" + df.index[-1].strftime('%Y年%m月%d日'), 
-            fontsize=20, ha='left')  # 增大注释字体
+            fontsize=32.4, ha='left')  # 缩小注释字体（原为36）
 
 # 调整布局
-plt.tight_layout()
-plt.subplots_adjust(bottom=0.1)
+plt.subplots_adjust(bottom=0.15)  # 增加底部边距
+plt.tight_layout(pad=3.0)  # 增加整体边距
 
 # 保存图表
 plt.savefig('PE_analysis.png', dpi=300, bbox_inches='tight')
