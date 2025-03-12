@@ -23,7 +23,8 @@ plt.figure(figsize=(12, 2))
 
 # 计算每个地区的起始位置
 left = 0
-colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']  # 为每个地区设置不同的颜色
+# 使用新的色系
+colors = ['#739CBF', '#00A3DF', '#0487D9', '#023859']  # 更新颜色顺序
 
 # 绘制每个地区的条形
 for i, region in enumerate(data.keys()):
@@ -39,7 +40,7 @@ for i, region in enumerate(data.keys()):
 # 设置图表样式
 plt.xlabel('收入占比（%）')
 plt.title('STOXX50 指数成分股全球收入分布')
-plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', facecolor='#E3EBF4')  # 使用 #E3EBF4 作为图例背景色
 
 # 保存图表
 plt.tight_layout()
