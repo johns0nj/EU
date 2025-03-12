@@ -32,6 +32,14 @@ latest_date = df.iloc[-1, 0]  # 假设日期在第一列
 six_months_ago = pd.Timestamp.now() - pd.DateOffset(months=6)
 recent_data = df[df.iloc[:, 0] >= six_months_ago]
 
+# 假设市值在第六列（F列）
+market_cap = df.iloc[:, 5].values  # 索引改为5，表示第6列
+
+# 将市值标准化到合适的点大小范围（例如5到20）
+min_size = 5
+max_size = 20
+size = (market_cap - market_cap.min()) / (market_cap.max() - market_cap.min()) * (max_size - min_size) + min_size
+
 # 创建Dash应用
 app = Dash(__name__)
 
@@ -45,8 +53,12 @@ fig.add_trace(
         y=Y,
         mode='markers',
         name='原始数据',
-        marker=dict(color='lightcoral', size=8),  # 改为淡红色
-        hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
+        marker=dict(
+            color='lightcoral',
+            size=size,  # 使用根据市值计算的大小
+            sizemode='diameter'  # 确保大小按直径计算
+        ),
+        hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<br>市值: %{marker.size:.2f}<extra></extra>'
     )
 )
 
