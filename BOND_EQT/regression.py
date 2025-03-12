@@ -51,6 +51,10 @@ fig.add_trace(
 )
 
 # 添加近6个月的数据路径
+start_date = recent_data.iloc[0, 0]  # 获取起点日期
+start_X = recent_data.iloc[0, 2]     # 获取起点X值
+start_Y = recent_data.iloc[0, 1]     # 获取起点Y值
+
 fig.add_trace(
     go.Scatter(
         x=recent_data.iloc[:, 2],  # C列作为X
@@ -61,6 +65,25 @@ fig.add_trace(
         marker=dict(size=8),
         hovertemplate='日期: %{text|%Y-%m-%d}<br>X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>',
         text=recent_data.iloc[:, 0]  # 添加日期信息
+    )
+)
+
+# 添加起点标注
+fig.add_trace(
+    go.Scatter(
+        x=[start_X],
+        y=[start_Y],
+        mode='markers+text',
+        name='6个月起点',
+        marker=dict(
+            color='khaki',
+            size=14,
+            symbol='diamond'
+        ),
+        text=[f'起点<br>日期: {start_date.strftime("%Y-%m-%d")}<br>X: {start_X:.2f}<br>Y: {start_Y:.2f}'],
+        textposition="bottom right",  # 将标注放在点的右下方
+        showlegend=False,
+        hovertemplate='日期: %{text}<extra></extra>'
     )
 )
 
