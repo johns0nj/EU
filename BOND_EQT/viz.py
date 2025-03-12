@@ -1573,7 +1573,40 @@ app.layout = html.Div(children=[
             ]),
             html.Div(id='break-even-result', style={'fontSize': '23px', 'marginTop': '20px'})
         ], style={'margin': '40px', 'padding': '30px', 'border': '2px solid #ddd', 'borderRadius': '20px', 'backgroundColor': '#ffffff'})
-    ], style={'margin': '40px', 'padding': '30px', 'border': '2px solid #ddd', 'borderRadius': '20px', 'backgroundColor': '#ffffff'})  # 关闭策略执行计划部分的括号
+    ], style={'margin': '40px', 'padding': '30px', 'border': '2px solid #ddd', 'borderRadius': '20px', 'backgroundColor': '#ffffff'}),
+    # 添加标普500不同点位的分析
+    html.Div([
+        html.H4('标普500不同点位分析：', style={'color': '#E31837', 'marginTop': '30px', 'borderBottom': '2px solid #E31837', 'paddingBottom': '10px', 'fontSize': '31px'}),
+        html.P([
+            '当前标普500点位对应的RAI和Momentum值：',
+            html.Br(),
+            f'• 当前点位 {spx_df["Last Price"].iloc[-1]:.2f}：RAI = {latest_rai:.2f}, Momentum = {latest_momentum:.2f}',
+            html.Br(),
+            html.Br(),
+            '不同点位对应的预测值：',
+            html.Br(),
+            f'• 5200点：RAI ≈ {latest_rai + ((5200 - spx_df["Last Price"].iloc[-1])/spx_df["Last Price"].iloc[-1])*2:.2f}, Momentum ≈ {latest_momentum + ((5200 - spx_df["Last Price"].iloc[-1])/spx_df["Last Price"].iloc[-1])*1.5:.2f}',
+            html.Br(),
+            f'• 5100点：RAI ≈ {latest_rai + ((5100 - spx_df["Last Price"].iloc[-1])/spx_df["Last Price"].iloc[-1])*2:.2f}, Momentum ≈ {latest_momentum + ((5100 - spx_df["Last Price"].iloc[-1])/spx_df["Last Price"].iloc[-1])*1.5:.2f}',
+            html.Br(),
+            f'• 5000点：RAI ≈ {latest_rai + ((5000 - spx_df["Last Price"].iloc[-1])/spx_df["Last Price"].iloc[-1])*2:.2f}, Momentum ≈ {latest_momentum + ((5000 - spx_df["Last Price"].iloc[-1])/spx_df["Last Price"].iloc[-1])*1.5:.2f}',
+            html.Br(),
+            f'• 4900点：RAI ≈ {latest_rai + ((4900 - spx_df["Last Price"].iloc[-1])/spx_df["Last Price"].iloc[-1])*2:.2f}, Momentum ≈ {latest_momentum + ((4900 - spx_df["Last Price"].iloc[-1])/spx_df["Last Price"].iloc[-1])*1.5:.2f}',
+            html.Br(),
+            f'• 4800点：RAI ≈ {latest_rai + ((4800 - spx_df["Last Price"].iloc[-1])/spx_df["Last Price"].iloc[-1])*2:.2f}, Momentum ≈ {latest_momentum + ((4800 - spx_df["Last Price"].iloc[-1])/spx_df["Last Price"].iloc[-1])*1.5:.2f}',
+            html.Br(),
+            html.Br(),
+            '说明：',
+            html.Br(),
+            '• RAI和Momentum的变化基于历史数据的统计关系估算',
+            html.Br(),
+            '• RAI对点位变化的敏感度约为2倍',
+            html.Br(),
+            '• Momentum对点位变化的敏感度约为1.5倍',
+            html.Br(),
+            '• 实际值可能因市场情绪和其他因素而有所不同'
+        ], style={'fontSize': '23px', 'lineHeight': '1.6'}),
+    ])
 ])  # 关闭 app.layout 的括号
 
 # 添加回调函数（移到布局外面）
