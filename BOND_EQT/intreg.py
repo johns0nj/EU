@@ -115,11 +115,11 @@ fig.add_trace(
 # 更新布局
 fig.update_layout(
     title="中美企业未来3年收入CAGR与前瞻PS回归分析",
-    title_font=dict(size=24),
+    title_font=dict(size=26.4),
     xaxis=dict(
         title="未来3年收入CAGR (%)",
-        title_font=dict(size=18),
-        tickfont=dict(size=14),
+        title_font=dict(size=19.8),
+        tickfont=dict(size=15.4),
         tickformat=".2%",
         showline=True,
         linewidth=2,
@@ -127,25 +127,27 @@ fig.update_layout(
     ),
     yaxis=dict(
         title="前瞻PS",
-        title_font=dict(size=18),
-        tickfont=dict(size=14),
+        title_font=dict(size=19.8),
+        tickfont=dict(size=15.4),
         showline=True,
         linewidth=2,
         linecolor='black'
     ),
     legend=dict(
-        font=dict(size=14)
+        font=dict(size=15.4)
     ),
     showlegend=True,
     plot_bgcolor='white',
     height=600,
-    width=960
+    width=1200
 )
 
 # 创建Dash布局
 app.layout = html.Div([
-    html.H3("美国回归方程: Y = {:.4f} * X + {:.4f}".format(us_reg.coef_[0], us_reg.intercept_)),
-    html.H3("中国回归方程: Y = {:.4f} * X + {:.4f}".format(cn_reg.coef_[0], cn_reg.intercept_)),
+    html.H3("美国回归方程: Y = {:.4f} * X + {:.4f}".format(us_reg.coef_[0], us_reg.intercept_),
+            style={'fontSize': '26.4px'}),
+    html.H3("中国回归方程: Y = {:.4f} * X + {:.4f}".format(cn_reg.coef_[0], cn_reg.intercept_),
+            style={'fontSize': '26.4px'}),
     dcc.Graph(
         id='regression-chart',
         figure=fig,

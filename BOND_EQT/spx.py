@@ -53,6 +53,24 @@ fig.add_trace(
     )
 )
 
+# 在图表中标注最新值
+fig.add_trace(
+    go.Scatter(
+        x=[latest_date],
+        y=[latest_price],
+        mode='markers+text',
+        name='最新值',
+        marker=dict(
+            color='green', 
+            size=6,
+            symbol='diamond'
+        ),
+        text=[f'最新值<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>收盘价: {latest_price:.2f}'],
+        textposition="bottom right",  # 将标注放在点的右下方
+        hovertemplate='日期: %{text}<extra></extra>'
+    )
+)
+
 # 添加时间跨度标记 - 从1932年6月开始，每个跨度为16年9个月
 start_date = datetime(1932, 6, 1)
 span_length = 16 * 12 + 9  # 16年9个月，以月为单位

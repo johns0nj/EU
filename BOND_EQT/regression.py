@@ -81,7 +81,13 @@ fig.add_trace(
             symbol='diamond'
         ),
         text=[f'起点<br>日期: {start_date.strftime("%Y-%m-%d")}<br>X: {start_X:.2f}<br>Y: {start_Y:.2f}'],
-        textposition="bottom right",  # 将标注放在点的右下方
+        textfont=dict(
+            size=15.4,  # 从14增大10%到15.4
+            family="Arial, sans-serif",
+            color="black",
+            weight="bold"  # 加粗
+        ),
+        textposition="bottom right",
         showlegend=False,
         hovertemplate='日期: %{text}<extra></extra>'
     )
@@ -132,11 +138,17 @@ fig.add_trace(
         name='最新值',
         marker=dict(
             color='green', 
-            size=14,  # 从12增大20%到14
-            symbol='diamond'  # 改为钻石形状
+            size=6,
+            symbol='diamond'
         ),
         text=[f'最新值<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {latest_X:.2f}<br>Y: {latest_Y:.2f}'],
-        textposition="top right",  # 将标注放在点的右上方
+        textfont=dict(
+            size=15.4,
+            family="Arial, sans-serif",
+            color="black",
+            weight="bold"
+        ),
+        textposition="top right",
         hovertemplate='日期: %{text}<extra></extra>'
     )
 )

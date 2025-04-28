@@ -19,7 +19,7 @@ df['Date'] = pd.to_datetime(df['Date']).dt.date
 df.set_index('Date', inplace=True)
 
 # 创建从 2010-01-01 到 2025-03-06 的完整日期范围
-full_date_range = pd.date_range(start='2010-01-01', end='2025-03-06', freq='D')
+full_date_range = pd.date_range(start='2010-01-01', end=df.index.max(), freq='D')
 
 # 重新索引 DataFrame 以包含完整的日期范围
 df = df.reindex(full_date_range)
@@ -54,3 +54,5 @@ app.layout = html.Div([
 
 if __name__ == '__main__':
     app.run_server(debug=True)
+
+print("SPX数据最后日期：", df['Date'].max())
