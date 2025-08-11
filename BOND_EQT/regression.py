@@ -7,6 +7,12 @@ from sklearn.linear_model import LinearRegression
 # 读取数据
 df = pd.read_excel('reg.xlsx')
 
+# 打印DataFrame的信息
+print("DataFrame的列名：")
+print(df.columns)
+print("\nDataFrame的前几行：")
+print(df.head())
+
 # 筛选2020年7月以来的数据
 df = df[df.iloc[:, 0] >= '2020-07-01']  # 假设日期在第一列
 
@@ -28,9 +34,12 @@ latest_X = X[-1][0]
 latest_Y = Y[-1]
 latest_date = df.iloc[-1, 0]  # 假设日期在第一列
 
-# 获取近6个月的数据
-six_months_ago = pd.Timestamp.now() - pd.DateOffset(months=6)
-recent_data = df[df.iloc[:, 0] >= six_months_ago]
+# 获取近3个月的数据
+three_months_ago = pd.Timestamp.now() - pd.DateOffset(months=3)
+recent_data = df[df.iloc[:, 0] >= three_months_ago]
+
+# 使用固定大小
+size = np.ones(len(df)) * 6.5  # 使用固定大小6.5（原来是5，增加30%）
 
 # 创建Dash应用
 app = Dash(__name__)
@@ -45,12 +54,16 @@ fig.add_trace(
         y=Y,
         mode='markers',
         name='原始数据',
-        marker=dict(color='lightcoral', size=8),  # 改为淡红色
-        hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
+        marker=dict(
+            color='lightcoral',
+            size=size,  # 使用固定大小
+            sizemode='diameter'  # 确保大小按直径计算
+        ),
+        hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'  # 移除市值显示
     )
 )
 
-# 添加近6个月的数据路径
+# 添加近3个月的数据路径
 start_date = recent_data.iloc[0, 0]  # 获取起点日期
 start_X = recent_data.iloc[0, 2]     # 获取起点X值
 start_Y = recent_data.iloc[0, 1]     # 获取起点Y值
@@ -60,9 +73,9 @@ fig.add_trace(
         x=recent_data.iloc[:, 2],  # C列作为X
         y=recent_data.iloc[:, 1],  # B列作为Y
         mode='lines+markers',
-        name='近6个月路径',
+        name='近3个月路径',
         line=dict(color='navy', width=2),  # 改为海军蓝色
-        marker=dict(size=8),
+        marker=dict(size=5.6),  # 从8缩小30%到5.6
         hovertemplate='日期: %{text|%Y-%m-%d}<br>X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>',
         text=recent_data.iloc[:, 0]  # 添加日期信息
     )
@@ -74,7 +87,7 @@ fig.add_trace(
         x=[start_X],
         y=[start_Y],
         mode='markers+text',
-        name='6个月起点',
+        name='3个月起点',
         marker=dict(
             color='khaki',
             size=14,
@@ -138,7 +151,7 @@ fig.add_trace(
         name='最新值',
         marker=dict(
             color='green', 
-            size=6,
+            size=7.8,  # 从6增加30%到7.8
             symbol='diamond'
         ),
         text=[f'最新值<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {latest_X:.2f}<br>Y: {latest_Y:.2f}'],
