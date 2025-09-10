@@ -4,208 +4,256 @@ import plotly.graph_objects as go
 from dash import Dash, dcc, html
 from sklearn.linear_model import LinearRegression
 
-# 读取数据
-df = pd.read_excel('reg.xlsx')
+# 定义数据处理函数
+def process_data(excel_file, title_suffix=""):
+    # 读取数据
+    df = pd.read_excel(excel_file)
+    
+    print(f"\n{excel_file} DataFrame的列名：")
+    print(df.columns)
+    print(f"\n{excel_file} DataFrame的前几行：")
+    print(df.head())
+    
+    # 确保日期列是datetime类型 - 处理Excel日期序列号
+    from datetime import datetime, timedelta
+    excel_epoch = datetime(1899, 12, 30)  # Excel的起始日期
+    df.iloc[:, 0] = df.iloc[:, 0].apply(lambda x: excel_epoch + timedelta(days=x) if isinstance(x, (int, float)) else pd.to_datetime(x))
+    
+    # 筛选2020年7月以来的数据
+    df = df[df.iloc[:, 0] >= pd.to_datetime('2020-07-01')]  # 假设日期在第一列
+    
+    # 提取X和Y列
+    X = df.iloc[:, 2].values.reshape(-1, 1)  # C列作为X
+    Y = df.iloc[:, 1].values  # B列作为Y
+    
+    # 计算线性回归
+    reg = LinearRegression()
+    reg.fit(X, Y)
+    Y_pred = reg.predict(X)
+    
+    # 计算残差和标准差
+    residuals = Y - Y_pred
+    std_dev = np.std(residuals)
+    
+    # 获取最新值
+    latest_X = X[-1][0]
+    latest_Y = Y[-1]
+    latest_date = df.iloc[-1, 0]  # 假设日期在第一列
+    
+    # 获取近3个月的数据
+    three_months_ago = pd.Timestamp.now() - pd.DateOffset(months=3)
+    recent_data = df[df.iloc[:, 0] >= three_months_ago]
+    
+    # 使用固定大小
+    size = np.ones(len(df)) * 6.5  # 使用固定大小6.5（原来是5，增加30%）
+    
+    return df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, recent_data, size
 
-# 打印DataFrame的信息
-print("DataFrame的列名：")
-print(df.columns)
-print("\nDataFrame的前几行：")
-print(df.head())
+# 处理第一个数据集
+df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1, recent_data1, size1 = process_data('reg.xlsx')
 
-# 筛选2020年7月以来的数据
-df = df[df.iloc[:, 0] >= '2020-07-01']  # 假设日期在第一列
+# 处理第二个数据集
+df2, X2, Y2, reg2, Y2_pred, std_dev2, latest_X2, latest_Y2, latest_date2, recent_data2, size2 = process_data('reg_HS Tech.xlsx')
 
-# 提取X和Y列
-X = df.iloc[:, 2].values.reshape(-1, 1)  # C列作为X
-Y = df.iloc[:, 1].values  # B列作为Y
-
-# 计算线性回归
-reg = LinearRegression()
-reg.fit(X, Y)
-Y_pred = reg.predict(X)
-
-# 计算残差和标准差
-residuals = Y - Y_pred
-std_dev = np.std(residuals)
-
-# 获取最新值
-latest_X = X[-1][0]
-latest_Y = Y[-1]
-latest_date = df.iloc[-1, 0]  # 假设日期在第一列
-
-# 获取近3个月的数据
-three_months_ago = pd.Timestamp.now() - pd.DateOffset(months=3)
-recent_data = df[df.iloc[:, 0] >= three_months_ago]
-
-# 使用固定大小
-size = np.ones(len(df)) * 6.5  # 使用固定大小6.5（原来是5，增加30%）
+# 定义创建图表的函数
+def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, recent_data, size, title):
+    fig = go.Figure()
+    
+    # 获取起点数据
+    start_date = recent_data.iloc[0, 0]  # 获取起点日期
+    start_X = recent_data.iloc[0, 2]     # 获取起点X值
+    start_Y = recent_data.iloc[0, 1]     # 获取起点Y值
+    
+    # 添加原始数据点
+    fig.add_trace(
+        go.Scatter(
+            x=X.flatten(),
+            y=Y,
+            mode='markers',
+            name='原始数据',
+            marker=dict(
+                color='darkred',  # 改为深红色
+                size=size,  # 使用固定大小
+                sizemode='diameter',  # 确保大小按直径计算
+                line=dict(
+                    color='darkred',  # 边框也用深红色
+                    width=1  # 边框宽度
+                )
+            ),
+            hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'  # 移除市值显示
+        )
+    )
+    
+    # 添加近3个月的数据路径
+    fig.add_trace(
+        go.Scatter(
+            x=recent_data.iloc[:, 2],  # C列作为X
+            y=recent_data.iloc[:, 1],  # B列作为Y
+            mode='lines+markers',
+            name='近3个月路径',
+            line=dict(color='deepskyblue', width=2),  # 改为深天空蓝
+            marker=dict(size=5.6),  # 从8缩小30%到5.6
+            hovertemplate='日期: %{text|%Y-%m-%d}<br>X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>',
+            text=recent_data.iloc[:, 0]  # 添加日期信息
+        )
+    )
+    
+    # 添加起点标注
+    fig.add_trace(
+        go.Scatter(
+            x=[start_X],
+            y=[start_Y],
+            mode='markers+text',
+            name='3个月起点',
+            marker=dict(
+                color='khaki',
+                size=14,
+                symbol='diamond'
+            ),
+            text=[f'起点<br>日期: {start_date.strftime("%Y-%m-%d")}<br>X: {start_X:.2f}<br>Y: {start_Y:.2f}'],
+            textfont=dict(
+                size=15.4,  # 从14增大10%到15.4
+                family="Arial, sans-serif",
+                color="black",
+                weight="bold"  # 加粗
+            ),
+            textposition="bottom right",
+            showlegend=False,
+            hovertemplate='日期: %{text}<extra></extra>'
+        )
+    )
+    
+    # 添加回归线
+    fig.add_trace(
+        go.Scatter(
+            x=X.flatten(),
+            y=Y_pred,
+            mode='lines',
+            name='回归线',
+            line=dict(color='red', width=3),  # 改为红色并保持加粗
+            hovertemplate='X: %{x:.2f}<br>预测Y: %{y:.2f}<extra></extra>'
+        )
+    )
+    
+    # 添加+1倍标准差线
+    fig.add_trace(
+        go.Scatter(
+            x=X.flatten(),
+            y=Y_pred + std_dev,
+            mode='lines',
+            name='+1标准差',
+            line=dict(color='black', width=2, dash='dot'),  # 改为黑色
+            hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
+        )
+    )
+    
+    # 添加-1倍标准差线
+    fig.add_trace(
+        go.Scatter(
+            x=X.flatten(),
+            y=Y_pred - std_dev,
+            mode='lines',
+            name='-1标准差',
+            line=dict(color='black', width=2, dash='dot'),  # 改为黑色
+            hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
+        )
+    )
+    
+    # 标注最新值
+    fig.add_trace(
+        go.Scatter(
+            x=[latest_X],
+            y=[latest_Y],
+            mode='markers+text',
+            name='最新值',
+            marker=dict(
+                color='green', 
+                 size=13.26,  # 从7.8增加70%到13.26
+                symbol='diamond'
+            ),
+            text=[f'最新值<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {latest_X:.2f}<br>Y: {latest_Y:.2f}'],
+            textfont=dict(
+                size=15.4,
+                family="Arial, sans-serif",
+                color="black",
+                weight="bold"
+            ),
+            textposition="top right",
+            hovertemplate='日期: %{text}<extra></extra>'
+        )
+    )
+    
+    # 更新布局
+    fig.update_layout(
+        title=title,
+        title_font=dict(size=24),  # 标题字体保持不变
+        xaxis=dict(
+            title="X值：中美10年期国债收益率利差（%）",
+            title_font=dict(size=22),  # 从18增大20%到22
+            tickfont=dict(size=17),    # 从14增大20%到17
+            showline=True,
+            linewidth=2,
+            linecolor='black'
+        ),
+        yaxis=dict(
+            title="Y值：恒生科技1年前瞻估值（x）",
+            title_font=dict(size=22),  # 从18增大20%到22
+            tickfont=dict(size=17),    # 从14增大20%到17
+            showline=True,
+            linewidth=2,
+            linecolor='black'
+        ),
+        legend=dict(
+            font=dict(size=17)  # 从14增大20%到17
+        ),
+        showlegend=True,
+        plot_bgcolor='white',
+        height=600,
+        width=1200  # 16:8长宽比
+    )
+    
+    return fig
 
 # 创建Dash应用
 app = Dash(__name__)
 
-# 创建图表
-fig = go.Figure()
-
-# 添加原始数据点
-fig.add_trace(
-    go.Scatter(
-        x=X.flatten(),
-        y=Y,
-        mode='markers',
-        name='原始数据',
-        marker=dict(
-            color='lightcoral',
-            size=size,  # 使用固定大小
-            sizemode='diameter'  # 确保大小按直径计算
-        ),
-        hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'  # 移除市值显示
-    )
-)
-
-# 添加近3个月的数据路径
-start_date = recent_data.iloc[0, 0]  # 获取起点日期
-start_X = recent_data.iloc[0, 2]     # 获取起点X值
-start_Y = recent_data.iloc[0, 1]     # 获取起点Y值
-
-fig.add_trace(
-    go.Scatter(
-        x=recent_data.iloc[:, 2],  # C列作为X
-        y=recent_data.iloc[:, 1],  # B列作为Y
-        mode='lines+markers',
-        name='近3个月路径',
-        line=dict(color='navy', width=2),  # 改为海军蓝色
-        marker=dict(size=5.6),  # 从8缩小30%到5.6
-        hovertemplate='日期: %{text|%Y-%m-%d}<br>X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>',
-        text=recent_data.iloc[:, 0]  # 添加日期信息
-    )
-)
-
-# 添加起点标注
-fig.add_trace(
-    go.Scatter(
-        x=[start_X],
-        y=[start_Y],
-        mode='markers+text',
-        name='3个月起点',
-        marker=dict(
-            color='khaki',
-            size=14,
-            symbol='diamond'
-        ),
-        text=[f'起点<br>日期: {start_date.strftime("%Y-%m-%d")}<br>X: {start_X:.2f}<br>Y: {start_Y:.2f}'],
-        textfont=dict(
-            size=15.4,  # 从14增大10%到15.4
-            family="Arial, sans-serif",
-            color="black",
-            weight="bold"  # 加粗
-        ),
-        textposition="bottom right",
-        showlegend=False,
-        hovertemplate='日期: %{text}<extra></extra>'
-    )
-)
-
-# 添加回归线
-fig.add_trace(
-    go.Scatter(
-        x=X.flatten(),
-        y=Y_pred,
-        mode='lines',
-        name='回归线',
-        line=dict(color='red', width=3),  # 改为红色并保持加粗
-        hovertemplate='X: %{x:.2f}<br>预测Y: %{y:.2f}<extra></extra>'
-    )
-)
-
-# 添加+1倍标准差线
-fig.add_trace(
-    go.Scatter(
-        x=X.flatten(),
-        y=Y_pred + std_dev,
-        mode='lines',
-        name='+1标准差',
-        line=dict(color='black', width=2, dash='dot'),  # 改为黑色
-        hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
-    )
-)
-
-# 添加-1倍标准差线
-fig.add_trace(
-    go.Scatter(
-        x=X.flatten(),
-        y=Y_pred - std_dev,
-        mode='lines',
-        name='-1标准差',
-        line=dict(color='black', width=2, dash='dot'),  # 改为黑色
-        hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
-    )
-)
-
-# 标注最新值
-fig.add_trace(
-    go.Scatter(
-        x=[latest_X],
-        y=[latest_Y],
-        mode='markers+text',
-        name='最新值',
-        marker=dict(
-            color='green', 
-            size=7.8,  # 从6增加30%到7.8
-            symbol='diamond'
-        ),
-        text=[f'最新值<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {latest_X:.2f}<br>Y: {latest_Y:.2f}'],
-        textfont=dict(
-            size=15.4,
-            family="Arial, sans-serif",
-            color="black",
-            weight="bold"
-        ),
-        textposition="top right",
-        hovertemplate='日期: %{text}<extra></extra>'
-    )
-)
-
-# 更新布局
-fig.update_layout(
-    title="恒生科技1年前瞻估值vs中美利差回归分析",
-    title_font=dict(size=24),  # 标题字体保持不变
-    xaxis=dict(
-        title="X值：中美10年期国债收益率利差（%）",
-        title_font=dict(size=22),  # 从18增大20%到22
-        tickfont=dict(size=17),    # 从14增大20%到17
-        showline=True,
-        linewidth=2,
-        linecolor='black'
-    ),
-    yaxis=dict(
-        title="Y值：恒生科技1年前瞻估值（x）",
-        title_font=dict(size=22),  # 从18增大20%到22
-        tickfont=dict(size=17),    # 从14增大20%到17
-        showline=True,
-        linewidth=2,
-        linecolor='black'
-    ),
-    legend=dict(
-        font=dict(size=17)  # 从14增大20%到17
-    ),
-    showlegend=True,
-    plot_bgcolor='white',
-    height=600,
-    width=960  # 设置宽度为960，保持16:10的长宽比
-)
+# 创建两个图表
+fig1 = create_figure(df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1, recent_data1, size1, 
+                     "恒生科技1年前瞻估值vs中美利差回归分析 (reg.xlsx)")
+fig2 = create_figure(df2, X2, Y2, reg2, Y2_pred, std_dev2, latest_X2, latest_Y2, latest_date2, recent_data2, size2, 
+                     "恒生科技1年前瞻估值vs中美利差回归分析 (reg_HS Tech.xlsx)")
 
 # 创建Dash布局
 app.layout = html.Div([
+    # 第一个图表
     html.Div([
-        html.H3(f"回归方程: Y = {reg.coef_[0]:.4f} * X + {reg.intercept_:.4f}", 
-                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),  # 增大方程字体
-        html.H3(f"最新值: X = {latest_X:.2f}, Y = {latest_Y:.2f}", 
-                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'})  # 增大最新值字体
+        html.H3(f"第一个数据集回归方程: Y = {reg1.coef_[0]:.4f} * X + {reg1.intercept_:.4f}", 
+                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
+        html.H3(f"最新值: X = {latest_X1:.2f}, Y = {latest_Y1:.2f}", 
+                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'})
     ]),
     dcc.Graph(
-        id='regression-chart',
-        figure=fig,
+        id='regression-chart-1',
+        figure=fig1,
+        config={
+            'displayModeBar': True,
+            'scrollZoom': True
+        }
+    ),
+    
+    # 分隔线
+    html.Hr(style={'margin': '30px 0'}),
+    
+    # 第二个图表
+    html.Div([
+        html.H3(f"第二个数据集回归方程: Y = {reg2.coef_[0]:.4f} * X + {reg2.intercept_:.4f}", 
+                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
+        html.H3(f"最新值: X = {latest_X2:.2f}, Y = {latest_Y2:.2f}", 
+                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'})
+    ]),
+    dcc.Graph(
+        id='regression-chart-2',
+        figure=fig2,
         config={
             'displayModeBar': True,
             'scrollZoom': True
