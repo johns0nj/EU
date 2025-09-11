@@ -188,7 +188,35 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
                 color="black",
                 weight="bold"
             ),
-            textposition="top right",
+            textposition="bottom right",  # 调整位置避免与降息情景重叠
+            hovertemplate='日期: %{text}<extra></extra>'
+        )
+    )
+    
+    # 计算年底前三次降息情景的新值
+    rate_cut_X = latest_X + 0.4  # X值增加0.4
+    rate_cut_Y = latest_Y  # Y值保持与最新值相同，不变
+    
+    # 标注最新值（考虑年底前三次降息）
+    fig.add_trace(
+        go.Scatter(
+            x=[rate_cut_X],
+            y=[rate_cut_Y],
+            mode='markers+text',
+            name='最新值（考虑年底前三次降息）',
+            marker=dict(
+                color='yellow',  # 亮黄色
+                size=13.26,  # 与最新值相同大小
+                symbol='diamond'
+            ),
+            text=[f'最新值（考虑年底前三次降息）<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {rate_cut_X:.2f}<br>Y: {rate_cut_Y:.2f}'],
+            textfont=dict(
+                size=15.4,
+                family="Arial, sans-serif",
+                color="black",
+                weight="bold"
+            ),
+            textposition="top right",  # 放在图表右上方空白处
             hovertemplate='日期: %{text}<extra></extra>'
         )
     )
@@ -240,7 +268,9 @@ app.layout = html.Div([
         html.H3(f"第一个数据集回归方程: Y = {reg1.coef_[0]:.4f} * X + {reg1.intercept_:.4f}", 
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
         html.H3(f"最新值: X = {latest_X1:.2f}, Y = {latest_Y1:.2f}", 
-                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'})
+                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
+        html.H3(f"最新值（考虑年底前三次降息）: X = {latest_X1 + 0.4:.2f}, Y = {latest_Y1:.2f}", 
+                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'orange'})
     ]),
     dcc.Graph(
         id='regression-chart-1',
@@ -259,7 +289,9 @@ app.layout = html.Div([
         html.H3(f"第二个数据集回归方程: Y = {reg2.coef_[0]:.4f} * X + {reg2.intercept_:.4f}", 
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
         html.H3(f"最新值: X = {latest_X2:.2f}, Y = {latest_Y2:.2f}", 
-                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'})
+                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
+        html.H3(f"最新值（考虑年底前三次降息）: X = {latest_X2 + 0.4:.2f}, Y = {latest_Y2:.2f}", 
+                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'orange'})
     ]),
     dcc.Graph(
         id='regression-chart-2',
