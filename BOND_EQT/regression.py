@@ -320,6 +320,34 @@ def create_simplified_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y,
         )
     )
     
+    # 计算更新后的网格加仓点位对应估值（在回归线上）
+    grid_X = rate_cut_X  # X值与降息预期点相同
+    grid_Y = reg.predict([[grid_X]])[0]  # Y值在回归线上
+    
+    # 标注更新后的网格加仓点位对应估值
+    fig.add_trace(
+        go.Scatter(
+            x=[grid_X],
+            y=[grid_Y],
+            mode='markers+text',
+            name='更新后的网格加仓点位对应估值',
+            marker=dict(
+                color='blue',  # 蓝色
+                size=13.26,  # 与其他点相同大小
+                symbol='circle'  # 使用圆形区分
+            ),
+            text=[f'更新后的网格加仓点位对应估值<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {grid_X:.2f}<br>Y: {grid_Y:.2f}'],
+            textfont=dict(
+                size=15.4,
+                family="Arial, sans-serif",
+                color="black",
+                weight="bold"
+            ),
+            textposition="bottom right",  # 避免与其他标签重叠
+            hovertemplate='日期: %{text}<extra></extra>'
+        )
+    )
+    
     # 更新布局
     fig.update_layout(
         title=title,
@@ -412,7 +440,9 @@ app.layout = html.Div([
         html.H3(f"简化视图 - 第一个数据集回归方程: Y = {reg1.coef_[0]:.4f} * X + {reg1.intercept_:.4f}", 
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
         html.H3(f"最新值（仍有降息预期未计入）: X = {latest_X1 + 0.4:.2f}, Y = {latest_Y1:.2f}", 
-                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'orange'})
+                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'orange'}),
+        html.H3(f"更新后的网格加仓点位对应估值: X = {latest_X1 + 0.4:.2f}, Y = {reg1.predict([[latest_X1 + 0.4]])[0]:.2f}", 
+                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'blue'})
     ]),
     dcc.Graph(
         id='regression-chart-3',
