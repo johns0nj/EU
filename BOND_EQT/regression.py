@@ -252,14 +252,116 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
     
     return fig
 
+# 定义创建简化图表的函数
+def create_simplified_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, title):
+    fig = go.Figure()
+    
+    # 添加回归线
+    fig.add_trace(
+        go.Scatter(
+            x=X.flatten(),
+            y=Y_pred,
+            mode='lines',
+            name='回归线',
+            line=dict(color='red', width=3),
+            hovertemplate='X: %{x:.2f}<br>预测Y: %{y:.2f}<extra></extra>'
+        )
+    )
+    
+    # 添加+1倍标准差线
+    fig.add_trace(
+        go.Scatter(
+            x=X.flatten(),
+            y=Y_pred + std_dev,
+            mode='lines',
+            name='+1标准差',
+            line=dict(color='black', width=2, dash='dot'),
+            hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
+        )
+    )
+    
+    # 添加-1倍标准差线
+    fig.add_trace(
+        go.Scatter(
+            x=X.flatten(),
+            y=Y_pred - std_dev,
+            mode='lines',
+            name='-1标准差',
+            line=dict(color='black', width=2, dash='dot'),
+            hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
+        )
+    )
+    
+    # 计算降息预期的新值
+    rate_cut_X = latest_X + 0.4  # X值增加0.4
+    rate_cut_Y = latest_Y  # Y值保持与最新值相同，不变
+    
+    # 标注最新值（仍有降息预期未计入）
+    fig.add_trace(
+        go.Scatter(
+            x=[rate_cut_X],
+            y=[rate_cut_Y],
+            mode='markers+text',
+            name='最新值（仍有降息预期未计入）',
+            marker=dict(
+                color='yellow',  # 亮黄色
+                size=13.26,  # 与最新值相同大小
+                symbol='diamond'
+            ),
+            text=[f'最新值（仍有降息预期未计入）<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {rate_cut_X:.2f}<br>Y: {rate_cut_Y:.2f}'],
+            textfont=dict(
+                size=15.4,
+                family="Arial, sans-serif",
+                color="black",
+                weight="bold"
+            ),
+            textposition="top right",  # 放在图表右上方空白处
+            hovertemplate='日期: %{text}<extra></extra>'
+        )
+    )
+    
+    # 更新布局
+    fig.update_layout(
+        title=title,
+        title_font=dict(size=24),
+        xaxis=dict(
+            title="X值：中美10年期国债收益率利差（%）",
+            title_font=dict(size=22),
+            tickfont=dict(size=17),
+            showline=True,
+            linewidth=2,
+            linecolor='black'
+        ),
+        yaxis=dict(
+            title="Y值：恒生科技1年前瞻估值（x）",
+            title_font=dict(size=22),
+            tickfont=dict(size=17),
+            showline=True,
+            linewidth=2,
+            linecolor='black'
+        ),
+        legend=dict(
+            font=dict(size=17)
+        ),
+        showlegend=True,
+        plot_bgcolor='white',
+        height=600,
+        width=1200
+    )
+    
+    return fig
+
 # 创建Dash应用
 app = Dash(__name__)
 
-# 创建两个图表
+# 创建三个图表
 fig1 = create_figure(df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1, size1, 
                      "恒生科技1年前瞻估值vs中美利差回归分析")
 fig2 = create_figure(df2, X2, Y2, reg2, Y2_pred, std_dev2, latest_X2, latest_Y2, latest_date2, size2, 
                      "恒生科技1年前瞻估值vs中美利差回归分析")
+# 创建简化图表（第一个数据集）
+fig3 = create_simplified_figure(df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1,
+                               "简化视图：恒生科技1年前瞻估值vs中美利差回归分析")
 
 # 创建Dash布局
 app.layout = html.Div([
@@ -296,6 +398,25 @@ app.layout = html.Div([
     dcc.Graph(
         id='regression-chart-2',
         figure=fig2,
+        config={
+            'displayModeBar': True,
+            'scrollZoom': True
+        }
+    ),
+    
+    # 分隔线
+    html.Hr(style={'margin': '30px 0'}),
+    
+    # 第三个图表（简化视图）
+    html.Div([
+        html.H3(f"简化视图 - 第一个数据集回归方程: Y = {reg1.coef_[0]:.4f} * X + {reg1.intercept_:.4f}", 
+                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
+        html.H3(f"最新值（仍有降息预期未计入）: X = {latest_X1 + 0.4:.2f}, Y = {latest_Y1:.2f}", 
+                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'orange'})
+    ]),
+    dcc.Graph(
+        id='regression-chart-3',
+        figure=fig3,
         config={
             'displayModeBar': True,
             'scrollZoom': True
