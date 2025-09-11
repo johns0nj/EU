@@ -219,9 +219,9 @@ app = Dash(__name__)
 
 # 创建两个图表
 fig1 = create_figure(df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1, recent_data1, size1, 
-                     "恒生科技1年前瞻估值vs中美利差回归分析 (reg.xlsx)")
+                     "恒生科技1年前瞻估值vs中美利差回归分析")
 fig2 = create_figure(df2, X2, Y2, reg2, Y2_pred, std_dev2, latest_X2, latest_Y2, latest_date2, recent_data2, size2, 
-                     "恒生科技1年前瞻估值vs中美利差回归分析 (reg_HS Tech.xlsx)")
+                     "恒生科技1年前瞻估值vs中美利差回归分析")
 
 # 创建Dash布局
 app.layout = html.Div([
