@@ -197,19 +197,19 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
     rate_cut_X = latest_X + 0.4  # X值增加0.4
     rate_cut_Y = latest_Y  # Y值保持与最新值相同，不变
     
-    # 标注最新值（考虑年底前三次降息）
+    # 标注最新值（仍有降息预期未计入）
     fig.add_trace(
         go.Scatter(
             x=[rate_cut_X],
             y=[rate_cut_Y],
             mode='markers+text',
-            name='最新值（考虑年底前三次降息）',
+            name='最新值（仍有降息预期未计入）',
             marker=dict(
                 color='yellow',  # 亮黄色
                 size=13.26,  # 与最新值相同大小
                 symbol='diamond'
             ),
-            text=[f'最新值（考虑年底前三次降息）<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {rate_cut_X:.2f}<br>Y: {rate_cut_Y:.2f}'],
+            text=[f'最新值（仍有降息预期未计入）<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {rate_cut_X:.2f}<br>Y: {rate_cut_Y:.2f}'],
             textfont=dict(
                 size=15.4,
                 family="Arial, sans-serif",
@@ -269,7 +269,7 @@ app.layout = html.Div([
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
         html.H3(f"最新值: X = {latest_X1:.2f}, Y = {latest_Y1:.2f}", 
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
-        html.H3(f"最新值（考虑年底前三次降息）: X = {latest_X1 + 0.4:.2f}, Y = {latest_Y1:.2f}", 
+        html.H3(f"最新值（仍有降息预期未计入）: X = {latest_X1 + 0.4:.2f}, Y = {latest_Y1:.2f}", 
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'orange'})
     ]),
     dcc.Graph(
@@ -290,7 +290,7 @@ app.layout = html.Div([
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
         html.H3(f"最新值: X = {latest_X2:.2f}, Y = {latest_Y2:.2f}", 
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
-        html.H3(f"最新值（考虑年底前三次降息）: X = {latest_X2 + 0.4:.2f}, Y = {latest_Y2:.2f}", 
+        html.H3(f"最新值（仍有降息预期未计入）: X = {latest_X2 + 0.4:.2f}, Y = {latest_Y2:.2f}", 
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'orange'})
     ]),
     dcc.Graph(
