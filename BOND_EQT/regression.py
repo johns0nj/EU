@@ -40,29 +40,35 @@ def process_data(excel_file, title_suffix=""):
     latest_Y = Y[-1]
     latest_date = df.iloc[-1, 0]  # 假设日期在第一列
     
-    # 获取近3个月的数据
-    three_months_ago = pd.Timestamp.now() - pd.DateOffset(months=3)
-    recent_data = df[df.iloc[:, 0] >= three_months_ago]
+    # 获取2025年1月至3月的数据（已删除）
+    # jan_2025_start = pd.to_datetime('2025-01-01')
+    # mar_2025_end = pd.to_datetime('2025-03-31')
+    # jan_mar_2025_data = df[(df.iloc[:, 0] >= jan_2025_start) & (df.iloc[:, 0] <= mar_2025_end)]
+    
+    # 获取2025年3月20日至4月21日的数据（已删除）
+    # mar20_2025_start = pd.to_datetime('2025-03-20')
+    # apr21_2025_end = pd.to_datetime('2025-04-21')
+    # mar_apr_2025_data = df[(df.iloc[:, 0] >= mar20_2025_start) & (df.iloc[:, 0] <= apr21_2025_end)]
     
     # 使用固定大小
     size = np.ones(len(df)) * 6.5  # 使用固定大小6.5（原来是5，增加30%）
     
-    return df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, recent_data, size
+    return df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, size
 
 # 处理第一个数据集
-df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1, recent_data1, size1 = process_data('reg.xlsx')
+df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1, size1 = process_data('reg.xlsx')
 
 # 处理第二个数据集
-df2, X2, Y2, reg2, Y2_pred, std_dev2, latest_X2, latest_Y2, latest_date2, recent_data2, size2 = process_data('reg_HS Tech.xlsx')
+df2, X2, Y2, reg2, Y2_pred, std_dev2, latest_X2, latest_Y2, latest_date2, size2 = process_data('reg_HS Tech.xlsx')
 
 # 定义创建图表的函数
-def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, recent_data, size, title):
+def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, size, title):
     fig = go.Figure()
     
-    # 获取起点数据
-    start_date = recent_data.iloc[0, 0]  # 获取起点日期
-    start_X = recent_data.iloc[0, 2]     # 获取起点X值
-    start_Y = recent_data.iloc[0, 1]     # 获取起点Y值
+    # 获取起点数据（已删除近3个月路径）
+    # start_date = recent_data.iloc[0, 0]  # 获取起点日期
+    # start_X = recent_data.iloc[0, 2]     # 获取起点X值
+    # start_Y = recent_data.iloc[0, 1]     # 获取起点Y值
     
     # 添加原始数据点
     fig.add_trace(
@@ -84,44 +90,44 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
         )
     )
     
-    # 添加近3个月的数据路径
-    fig.add_trace(
-        go.Scatter(
-            x=recent_data.iloc[:, 2],  # C列作为X
-            y=recent_data.iloc[:, 1],  # B列作为Y
-            mode='lines+markers',
-            name='近3个月路径',
-            line=dict(color='deepskyblue', width=2),  # 改为深天空蓝
-            marker=dict(size=5.6),  # 从8缩小30%到5.6
-            hovertemplate='日期: %{text|%Y-%m-%d}<br>X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>',
-            text=recent_data.iloc[:, 0]  # 添加日期信息
-        )
-    )
+    # 添加近3个月的数据路径（已删除）
+    # fig.add_trace(
+    #     go.Scatter(
+    #         x=recent_data.iloc[:, 2],  # C列作为X
+    #         y=recent_data.iloc[:, 1],  # B列作为Y
+    #         mode='lines+markers',
+    #         name='近3个月路径',
+    #         line=dict(color='deepskyblue', width=2),  # 改为深天空蓝
+    #         marker=dict(size=5.6),  # 从8缩小30%到5.6
+    #         hovertemplate='日期: %{text|%Y-%m-%d}<br>X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>',
+    #         text=recent_data.iloc[:, 0]  # 添加日期信息
+    #     )
+    # )
     
-    # 添加起点标注
-    fig.add_trace(
-        go.Scatter(
-            x=[start_X],
-            y=[start_Y],
-            mode='markers+text',
-            name='3个月起点',
-            marker=dict(
-                color='khaki',
-                size=14,
-                symbol='diamond'
-            ),
-            text=[f'起点<br>日期: {start_date.strftime("%Y-%m-%d")}<br>X: {start_X:.2f}<br>Y: {start_Y:.2f}'],
-            textfont=dict(
-                size=15.4,  # 从14增大10%到15.4
-                family="Arial, sans-serif",
-                color="black",
-                weight="bold"  # 加粗
-            ),
-            textposition="bottom right",
-            showlegend=False,
-            hovertemplate='日期: %{text}<extra></extra>'
-        )
-    )
+    # 添加起点标注（已删除，因为删除了近3个月路径）
+    # fig.add_trace(
+    #     go.Scatter(
+    #         x=[start_X],
+    #         y=[start_Y],
+    #         mode='markers+text',
+    #         name='3个月起点',
+    #         marker=dict(
+    #             color='khaki',
+    #             size=14,
+    #             symbol='diamond'
+    #         ),
+    #         text=[f'起点<br>日期: {start_date.strftime("%Y-%m-%d")}<br>X: {start_X:.2f}<br>Y: {start_Y:.2f}'],
+    #         textfont=dict(
+    #             size=15.4,  # 从14增大10%到15.4
+    #             family="Arial, sans-serif",
+    #             color="black",
+    #             weight="bold"  # 加粗
+    #         ),
+    #         textposition="bottom right",
+    #         showlegend=False,
+    #         hovertemplate='日期: %{text}<extra></extra>'
+    #     )
+    # )
     
     # 添加回归线
     fig.add_trace(
@@ -158,6 +164,10 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
             hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
         )
     )
+    
+    # 添加2025年1-3月的数据路径（已删除）
+    # if len(jan_mar_2025_data) > 0:
+    #     # 所有1-3月路径相关代码已删除
     
     # 标注最新值
     fig.add_trace(
@@ -218,9 +228,9 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
 app = Dash(__name__)
 
 # 创建两个图表
-fig1 = create_figure(df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1, recent_data1, size1, 
+fig1 = create_figure(df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1, size1, 
                      "恒生科技1年前瞻估值vs中美利差回归分析")
-fig2 = create_figure(df2, X2, Y2, reg2, Y2_pred, std_dev2, latest_X2, latest_Y2, latest_date2, recent_data2, size2, 
+fig2 = create_figure(df2, X2, Y2, reg2, Y2_pred, std_dev2, latest_X2, latest_Y2, latest_date2, size2, 
                      "恒生科技1年前瞻估值vs中美利差回归分析")
 
 # 创建Dash布局
