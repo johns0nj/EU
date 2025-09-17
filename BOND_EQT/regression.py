@@ -348,6 +348,34 @@ def create_simplified_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y,
         )
     )
     
+    # 计算考虑EPS后的网格加仓点位对应估值（回归线的95%）
+    eps_X = rate_cut_X  # X值与降息预期点相同
+    eps_Y = reg.predict([[eps_X]])[0] * 0.95  # Y值为回归线的95%
+    
+    # 标注考虑EPS后的网格加仓点位对应估值
+    fig.add_trace(
+        go.Scatter(
+            x=[eps_X],
+            y=[eps_Y],
+            mode='markers+text',
+            name='考虑EPS后的网格加仓点位对应估值',
+            marker=dict(
+                color='green',  # 绿色
+                size=13.26,  # 与其他点相同大小
+                symbol='square'  # 使用方形区分
+            ),
+            text=[f'考虑EPS后的网格加仓点位对应估值<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {eps_X:.2f}<br>Y: {eps_Y:.2f}'],
+            textfont=dict(
+                size=15.4,
+                family="Arial, sans-serif",
+                color="black",
+                weight="bold"
+            ),
+            textposition="bottom left",  # 避免与其他标签重叠
+            hovertemplate='日期: %{text}<extra></extra>'
+        )
+    )
+    
     # 更新布局
     fig.update_layout(
         title=title,
@@ -442,7 +470,9 @@ app.layout = html.Div([
         html.H3(f"最新值（仍有降息预期未计入）: X = {latest_X1 + 0.4:.2f}, Y = {latest_Y1:.2f}", 
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'orange'}),
         html.H3(f"更新后的网格加仓点位对应估值: X = {latest_X1 + 0.4:.2f}, Y = {reg1.predict([[latest_X1 + 0.4]])[0]:.2f}", 
-                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'blue'})
+                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'blue'}),
+        html.H3(f"考虑EPS后的网格加仓点位对应估值: X = {latest_X1 + 0.4:.2f}, Y = {reg1.predict([[latest_X1 + 0.4]])[0] * 0.95:.2f}", 
+                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'green'})
     ]),
     dcc.Graph(
         id='regression-chart-3',
