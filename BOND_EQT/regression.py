@@ -22,6 +22,9 @@ def process_data(excel_file, title_suffix=""):
     # 筛选2020年7月以来的数据
     df = df[df.iloc[:, 0] >= pd.to_datetime('2020-07-01')]  # 假设日期在第一列
     
+    # 删除包含NaN值的行
+    df = df.dropna()
+    
     # 提取X和Y列
     X = df.iloc[:, 2].values.reshape(-1, 1)  # C列作为X
     Y = df.iloc[:, 1].values  # B列作为Y
