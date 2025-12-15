@@ -43,6 +43,16 @@ def process_data(excel_file, title_suffix=""):
     latest_Y = Y[-1]
     latest_date = df.iloc[-1, 0]  # 假设日期在第一列
     
+    # 查找2025年10月2日的数据
+    target_date = pd.to_datetime('2025-10-02')
+    oct_2_data = df[df.iloc[:, 0] == target_date]
+    if len(oct_2_data) > 0:
+        oct_2_X = oct_2_data.iloc[0, 2]  # C列作为X
+        oct_2_Y = oct_2_data.iloc[0, 1]  # B列作为Y
+    else:
+        oct_2_X = None
+        oct_2_Y = None
+    
     # 获取2025年1月至3月的数据（已删除）
     # jan_2025_start = pd.to_datetime('2025-01-01')
     # mar_2025_end = pd.to_datetime('2025-03-31')
@@ -56,16 +66,16 @@ def process_data(excel_file, title_suffix=""):
     # 使用固定大小
     size = np.ones(len(df)) * 6.5  # 使用固定大小6.5（原来是5，增加30%）
     
-    return df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, size
+    return df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, size, oct_2_X, oct_2_Y
 
 # 处理第一个数据集
-df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1, size1 = process_data('reg.xlsx')
+df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1, size1, oct_2_X1, oct_2_Y1 = process_data('EU/BOND_EQT/reg.xlsx')
 
 # 处理第二个数据集
-df2, X2, Y2, reg2, Y2_pred, std_dev2, latest_X2, latest_Y2, latest_date2, size2 = process_data('reg_HS Tech.xlsx')
+df2, X2, Y2, reg2, Y2_pred, std_dev2, latest_X2, latest_Y2, latest_date2, size2, oct_2_X2, oct_2_Y2 = process_data('EU/BOND_EQT/reg_HS Tech.xlsx')
 
 # 定义创建图表的函数
-def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, size, title):
+def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, size, title, oct_2_X=None, oct_2_Y=None):
     fig = go.Figure()
     
     # 获取起点数据（已删除近3个月路径）
@@ -81,11 +91,11 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
             mode='markers',
             name='原始数据',
             marker=dict(
-                color='darkred',  # 改为深红色
+                color='red',  # 改为正红色
                 size=size,  # 使用固定大小
                 sizemode='diameter',  # 确保大小按直径计算
                 line=dict(
-                    color='darkred',  # 边框也用深红色
+                    color='red',  # 边框也用正红色
                     width=1  # 边框宽度
                 )
             ),
@@ -168,6 +178,30 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
         )
     )
     
+    # 添加+2倍标准差线
+    fig.add_trace(
+        go.Scatter(
+            x=X.flatten(),
+            y=Y_pred + 2 * std_dev,
+            mode='lines',
+            name='+2标准差',
+            line=dict(color='gray', width=2, dash='dash'),  # 灰色虚线
+            hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
+        )
+    )
+    
+    # 添加-2倍标准差线
+    fig.add_trace(
+        go.Scatter(
+            x=X.flatten(),
+            y=Y_pred - 2 * std_dev,
+            mode='lines',
+            name='-2标准差',
+            line=dict(color='gray', width=2, dash='dash'),  # 灰色虚线
+            hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
+        )
+    )
+    
     # 添加2025年1-3月的数据路径（已删除）
     # if len(jan_mar_2025_data) > 0:
     #     # 所有1-3月路径相关代码已删除
@@ -180,9 +214,9 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
             mode='markers+text',
             name='最新值',
             marker=dict(
-                color='green', 
-                 size=13.26,  # 从7.8增加70%到13.26
-                symbol='diamond'
+                color='darkgreen',  # 深绿色
+                size=13.26,  # 从7.8增加70%到13.26
+                symbol='triangle-up'  # 三角形向上
             ),
             text=[f'最新值<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {latest_X:.2f}<br>Y: {latest_Y:.2f}'],
             textfont=dict(
@@ -191,38 +225,42 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
                 color="black",
                 weight="bold"
             ),
-            textposition="bottom right",  # 调整位置避免与降息情景重叠
+            textposition="bottom right",  # 调整位置避免与其他标记重叠
             hovertemplate='日期: %{text}<extra></extra>'
         )
     )
+    
+    # 标注2025年10月2日的值（如果存在）
+    if oct_2_X is not None and oct_2_Y is not None:
+        fig.add_trace(
+            go.Scatter(
+                x=[oct_2_X],
+                y=[oct_2_Y],
+                mode='markers+text',
+                name='2025-10-02',
+                marker=dict(
+                    color='blue',
+                    size=15,
+                    symbol='circle',
+                    line=dict(color='darkblue', width=2)
+                ),
+                text=[f'2025-10-02<br>X: {oct_2_X:.2f}<br>Y: {oct_2_Y:.2f}'],
+                textfont=dict(
+                    size=14,
+                    family="Arial, sans-serif",
+                    color="blue",
+                    weight="bold"
+                ),
+                textposition="top center",
+                hovertemplate='日期: 2025-10-02<br>X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
+            )
+        )
     
     # 计算年底前三次降息情景的新值
     rate_cut_X = latest_X + 0.4  # X值增加0.4
     rate_cut_Y = latest_Y  # Y值保持与最新值相同，不变
     
-    # 标注最新值（仍有降息预期未计入）
-    fig.add_trace(
-        go.Scatter(
-            x=[rate_cut_X],
-            y=[rate_cut_Y],
-            mode='markers+text',
-            name='最新值（仍有降息预期未计入）',
-            marker=dict(
-                color='yellow',  # 亮黄色
-                size=13.26,  # 与最新值相同大小
-                symbol='diamond'
-            ),
-            text=[f'最新值（仍有降息预期未计入）<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {rate_cut_X:.2f}<br>Y: {rate_cut_Y:.2f}'],
-            textfont=dict(
-                size=15.4,
-                family="Arial, sans-serif",
-                color="black",
-                weight="bold"
-            ),
-            textposition="top right",  # 放在图表右上方空白处
-            hovertemplate='日期: %{text}<extra></extra>'
-        )
-    )
+    # 标注最新值 - 已删除
     
     # 更新布局
     fig.update_layout(
@@ -299,19 +337,19 @@ def create_simplified_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y,
     rate_cut_X = latest_X + 0.4  # X值增加0.4
     rate_cut_Y = latest_Y  # Y值保持与最新值相同，不变
     
-    # 标注最新值（仍有降息预期未计入）
+    # 标注最新值
     fig.add_trace(
         go.Scatter(
             x=[rate_cut_X],
             y=[rate_cut_Y],
             mode='markers+text',
-            name='最新值（仍有降息预期未计入）',
+            name='最新值',
             marker=dict(
                 color='yellow',  # 亮黄色
                 size=13.26,  # 与最新值相同大小
                 symbol='diamond'
             ),
-            text=[f'最新值（仍有降息预期未计入）<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {rate_cut_X:.2f}<br>Y: {rate_cut_Y:.2f}'],
+            text=[f'最新值<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {rate_cut_X:.2f}<br>Y: {rate_cut_Y:.2f}'],
             textfont=dict(
                 size=15.4,
                 family="Arial, sans-serif",
@@ -415,9 +453,9 @@ app = Dash(__name__)
 
 # 创建三个图表
 fig1 = create_figure(df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1, size1, 
-                     "恒生科技1年前瞻估值vs中美利差回归分析")
+                     "恒生科技1年前瞻估值vs中美利差回归分析", oct_2_X1, oct_2_Y1)
 fig2 = create_figure(df2, X2, Y2, reg2, Y2_pred, std_dev2, latest_X2, latest_Y2, latest_date2, size2, 
-                     "恒生科技1年前瞻估值vs中美利差回归分析")
+                     "恒生科技1年前瞻估值vs中美利差回归分析", oct_2_X2, oct_2_Y2)
 # 创建简化图表（第一个数据集）
 fig3 = create_simplified_figure(df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1,
                                "简化视图：恒生科技1年前瞻估值vs中美利差回归分析")
@@ -430,7 +468,7 @@ app.layout = html.Div([
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
         html.H3(f"最新值: X = {latest_X1:.2f}, Y = {latest_Y1:.2f}", 
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
-        html.H3(f"最新值（仍有降息预期未计入）: X = {latest_X1 + 0.4:.2f}, Y = {latest_Y1:.2f}", 
+        html.H3(f"最新值: X = {latest_X1 + 0.4:.2f}, Y = {latest_Y1:.2f}", 
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'orange'})
     ]),
     dcc.Graph(
@@ -451,7 +489,7 @@ app.layout = html.Div([
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
         html.H3(f"最新值: X = {latest_X2:.2f}, Y = {latest_Y2:.2f}", 
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
-        html.H3(f"最新值（仍有降息预期未计入）: X = {latest_X2 + 0.4:.2f}, Y = {latest_Y2:.2f}", 
+        html.H3(f"最新值: X = {latest_X2 + 0.4:.2f}, Y = {latest_Y2:.2f}", 
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'orange'})
     ]),
     dcc.Graph(
@@ -470,7 +508,7 @@ app.layout = html.Div([
     html.Div([
         html.H3(f"简化视图 - 第一个数据集回归方程: Y = {reg1.coef_[0]:.4f} * X + {reg1.intercept_:.4f}", 
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
-        html.H3(f"最新值（仍有降息预期未计入）: X = {latest_X1 + 0.4:.2f}, Y = {latest_Y1:.2f}", 
+        html.H3(f"最新值: X = {latest_X1 + 0.4:.2f}, Y = {latest_Y1:.2f}", 
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'orange'}),
         html.H3(f"更新后的网格加仓点位对应估值: X = {latest_X1 + 0.4:.2f}, Y = {reg1.predict([[latest_X1 + 0.4]])[0]:.2f}", 
                 style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'blue'}),
