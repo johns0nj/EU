@@ -69,10 +69,10 @@ def process_data(excel_file, title_suffix=""):
     return df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, size, oct_2_X, oct_2_Y
 
 # 处理第一个数据集
-df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1, size1, oct_2_X1, oct_2_Y1 = process_data('EU/BOND_EQT/reg.xlsx')
+df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1, size1, oct_2_X1, oct_2_Y1 = process_data('reg.xlsx')
 
 # 处理第二个数据集
-df2, X2, Y2, reg2, Y2_pred, std_dev2, latest_X2, latest_Y2, latest_date2, size2, oct_2_X2, oct_2_Y2 = process_data('EU/BOND_EQT/reg_HS Tech.xlsx')
+df2, X2, Y2, reg2, Y2_pred, std_dev2, latest_X2, latest_Y2, latest_date2, size2, oct_2_X2, oct_2_Y2 = process_data('reg_HS Tech.xlsx')
 
 # 定义创建图表的函数
 def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, size, title, oct_2_X=None, oct_2_Y=None):
