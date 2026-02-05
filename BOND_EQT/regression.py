@@ -3,6 +3,7 @@ import numpy as np
 import plotly.graph_objects as go
 from dash import Dash, dcc, html
 from sklearn.linear_model import LinearRegression
+import os
 
 # 定义数据处理函数
 def process_data(excel_file, title_suffix=""):
@@ -73,6 +74,16 @@ def process_data(excel_file, title_suffix=""):
         apr_9_X = None
         apr_9_Y = None
     
+    # 查找2025年3月18日的数据
+    mar_18_date = pd.to_datetime('2025-03-18')
+    mar_18_data = df[df.iloc[:, 0] == mar_18_date]
+    if len(mar_18_data) > 0:
+        mar_18_X = mar_18_data.iloc[0, 2]  # C列作为X
+        mar_18_Y = mar_18_data.iloc[0, 1]  # B列作为Y
+    else:
+        mar_18_X = None
+        mar_18_Y = None
+    
     # 查找X=0.68, Y=16.74的特定数据点
     # 使用容差来匹配浮点数
     tolerance = 0.01
@@ -107,6 +118,7 @@ def process_data(excel_file, title_suffix=""):
         jan_feb_dates = None
         print("未找到2024年1-2月数据")
     
+    
     # 获取2025年1月至3月的数据（已删除）
     # jan_2025_start = pd.to_datetime('2025-01-01')
     # mar_2025_end = pd.to_datetime('2025-03-31')
@@ -120,16 +132,21 @@ def process_data(excel_file, title_suffix=""):
     # 使用固定大小
     size = np.ones(len(df)) * 6.5  # 使用固定大小6.5（原来是5，增加30%）
     
-    return df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, size, oct_2_X, oct_2_Y, apr_8_X, apr_8_Y, apr_9_X, apr_9_Y, specific_date, specific_X, specific_Y, jan_feb_X, jan_feb_Y, jan_feb_dates
+    return df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, size, oct_2_X, oct_2_Y, apr_8_X, apr_8_Y, apr_9_X, apr_9_Y, mar_18_X, mar_18_Y, specific_date, specific_X, specific_Y, jan_feb_X, jan_feb_Y, jan_feb_dates
+
+# 获取脚本所在目录
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
 # 处理第一个数据集
-df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1, size1, oct_2_X1, oct_2_Y1, apr_8_X1, apr_8_Y1, apr_9_X1, apr_9_Y1, specific_date1, specific_X1, specific_Y1, jan_feb_X1, jan_feb_Y1, jan_feb_dates1 = process_data('reg.xlsx')
+df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1, size1, oct_2_X1, oct_2_Y1, apr_8_X1, apr_8_Y1, apr_9_X1, apr_9_Y1, mar_18_X1, mar_18_Y1, specific_date1, specific_X1, specific_Y1, jan_feb_X1, jan_feb_Y1, jan_feb_dates1 = process_data(os.path.join(script_dir, 'reg.xlsx'))
 
-# 处理第二个数据集
-df2, X2, Y2, reg2, Y2_pred, std_dev2, latest_X2, latest_Y2, latest_date2, size2, oct_2_X2, oct_2_Y2, apr_8_X2, apr_8_Y2, apr_9_X2, apr_9_Y2, specific_date2, specific_X2, specific_Y2, jan_feb_X2, jan_feb_Y2, jan_feb_dates2 = process_data('reg_HS Tech.xlsx')
+# 处理第二个数据集（读取 reg_HS Tech.xlsx，恒生科技指数点位）
+hstech_path = os.path.join(script_dir, 'reg_HS Tech.xlsx')
+print(f"\n正在读取第二个数据集: {hstech_path}")
+df2, X2, Y2, reg2, Y2_pred, std_dev2, latest_X2, latest_Y2, latest_date2, size2, oct_2_X2, oct_2_Y2, apr_8_X2, apr_8_Y2, apr_9_X2, apr_9_Y2, mar_18_X2, mar_18_Y2, specific_date2, specific_X2, specific_Y2, jan_feb_X2, jan_feb_Y2, jan_feb_dates2 = process_data(hstech_path)
 
 # 定义创建图表的函数
-def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, size, title, oct_2_X=None, oct_2_Y=None, apr_8_X=None, apr_8_Y=None, apr_9_X=None, apr_9_Y=None, specific_date=None, specific_X=None, specific_Y=None, jan_feb_X=None, jan_feb_Y=None, jan_feb_dates=None):
+def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, size, title, oct_2_X=None, oct_2_Y=None, apr_8_X=None, apr_8_Y=None, apr_9_X=None, apr_9_Y=None, mar_18_X=None, mar_18_Y=None, specific_date=None, specific_X=None, specific_Y=None, jan_feb_X=None, jan_feb_Y=None, jan_feb_dates=None, y_axis_title="Y值：恒生科技1年前瞻估值（x）"):
     fig = go.Figure()
     
     # 获取起点数据（已删除近3个月路径）
@@ -145,11 +162,11 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
             mode='markers',
             name='原始数据',
             marker=dict(
-                color='red',  # 改为正红色
+                color='#D3D3D3',  # 浅灰色（lightgray）
                 size=size,  # 使用固定大小
                 sizemode='diameter',  # 确保大小按直径计算
                 line=dict(
-                    color='red',  # 边框也用正红色
+                    color='#D3D3D3',  # 边框也用浅灰色
                     width=1  # 边框宽度
                 )
             ),
@@ -165,6 +182,7 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
                 y=jan_feb_Y,
                 mode='markers',
                 name='2024年1-2月',
+                legendgroup='jan_feb_2024',
                 marker=dict(
                     color='lightblue',  # 浅蓝色
                     size=8,  # 稍大一些
@@ -185,33 +203,39 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
             x_min, x_max = min(jan_feb_X), max(jan_feb_X)
             y_min, y_max = min(jan_feb_Y), max(jan_feb_Y)
             
-            # 添加矩形阴影区域
-            fig.add_shape(
-                type="rect",
-                x0=x_min - 0.05, y0=y_min - 0.5,
-                x1=x_max + 0.05, y1=y_max + 0.5,
-                fillcolor="lightblue",
-                opacity=0.2,
-                layer="below",
-                line_width=0,
+            # 使用 scatter trace 绘制矩形阴影区域
+            fig.add_trace(
+                go.Scatter(
+                    x=[x_min - 0.05, x_max + 0.05, x_max + 0.05, x_min - 0.05, x_min - 0.05],
+                    y=[y_min - 0.5, y_min - 0.5, y_max + 0.5, y_max + 0.5, y_min - 0.5],
+                    fill='toself',
+                    fillcolor='lightblue',
+                    opacity=0.2,
+                    line=dict(width=0),
+                    legendgroup='jan_feb_2024',
+                    showlegend=False,
+                    hoverinfo='skip'
+                )
             )
             
-            # 添加区域标签
-            fig.add_annotation(
-                x=(x_min + x_max) / 2,
-                y=y_max + 0.3,
-                text="2024年1-2月区域",
-                showarrow=False,
-                font=dict(
-                    size=14,
-                    color="darkblue",
-                    weight="bold"
-                ),
-                bgcolor="lightblue",
-                bordercolor="darkblue",
-                borderwidth=1,
-                opacity=0.8
+            # 使用 scatter trace 添加区域标签
+            fig.add_trace(
+                go.Scatter(
+                    x=[(x_min + x_max) / 2],
+                    y=[y_max + 0.3],
+                    mode='text',
+                    text=["2024年1-2月区域"],
+                    textfont=dict(
+                        size=14,
+                        color="darkblue",
+                        weight="bold"
+                    ),
+                    legendgroup='jan_feb_2024',
+                    showlegend=False,
+                    hoverinfo='skip'
+                )
             )
+    
     
     # 添加近3个月的数据路径（已删除）
     # fig.add_trace(
@@ -322,10 +346,10 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
             x=[latest_X],
             y=[latest_Y],
             mode='markers+text',
-            name='最新值',
+            name=f'最新值 ({latest_date.strftime("%Y-%m-%d")})',
             marker=dict(
                 color='darkgreen',  # 深绿色
-                size=13.26,  # 从7.8增加70%到13.26
+                size=20,  # 增大三角形标记
                 symbol='triangle-up'  # 三角形向上
             ),
             text=[f'最新值<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {latest_X:.2f}<br>Y: {latest_Y:.2f}'],
@@ -342,18 +366,47 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
     
     # 标注2025年10月2日的值（如果存在）
     if oct_2_X is not None and oct_2_Y is not None:
+        # 计算标注位置（使用像素偏移转换为数据坐标）
+        x_range = max(X.flatten()) - min(X.flatten())
+        y_range = max(Y) - min(Y)
+        label_x = oct_2_X + 0.05 * x_range
+        label_y = oct_2_Y + 0.08 * y_range
+        
+        # 添加标记点
         fig.add_trace(
             go.Scatter(
                 x=[oct_2_X],
                 y=[oct_2_Y],
-                mode='markers+text',
+                mode='markers',
                 name='2025-10-02',
+                legendgroup='oct_2',
                 marker=dict(
                     color='blue',
                     size=15,
                     symbol='circle',
                     line=dict(color='darkblue', width=2)
                 ),
+                hovertemplate='日期: 2025-10-02<br>X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
+            )
+        )
+        # 添加连接线
+        fig.add_trace(
+            go.Scatter(
+                x=[oct_2_X, label_x],
+                y=[oct_2_Y, label_y],
+                mode='lines',
+                line=dict(color='blue', width=2),
+                legendgroup='oct_2',
+                showlegend=False,
+                hoverinfo='skip'
+            )
+        )
+        # 添加标注文本
+        fig.add_trace(
+            go.Scatter(
+                x=[label_x],
+                y=[label_y],
+                mode='text',
                 text=[f'2025-10-02<br>X: {oct_2_X:.2f}<br>Y: {oct_2_Y:.2f}'],
                 textfont=dict(
                     size=14,
@@ -361,25 +414,56 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
                     color="blue",
                     weight="bold"
                 ),
-                textposition="top center",
-                hovertemplate='日期: 2025-10-02<br>X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
+                textposition="middle right",
+                legendgroup='oct_2',
+                showlegend=False,
+                hoverinfo='skip'
             )
         )
     
     # 标注2025年4月8日的值（如果存在）
     if apr_8_X is not None and apr_8_Y is not None:
+        # 计算标注位置
+        x_range = max(X.flatten()) - min(X.flatten())
+        y_range = max(Y) - min(Y)
+        label_x = apr_8_X - 0.05 * x_range
+        label_y = apr_8_Y + 0.08 * y_range
+        
+        # 添加标记点
         fig.add_trace(
             go.Scatter(
                 x=[apr_8_X],
                 y=[apr_8_Y],
-                mode='markers+text',
+                mode='markers',
                 name='2025-04-08',
+                legendgroup='apr_8',
                 marker=dict(
                     color='purple',
                     size=15,
                     symbol='square',
                     line=dict(color='darkmagenta', width=2)
                 ),
+                hovertemplate='日期: 2025-04-08<br>X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
+            )
+        )
+        # 添加连接线
+        fig.add_trace(
+            go.Scatter(
+                x=[apr_8_X, label_x],
+                y=[apr_8_Y, label_y],
+                mode='lines',
+                line=dict(color='purple', width=2),
+                legendgroup='apr_8',
+                showlegend=False,
+                hoverinfo='skip'
+            )
+        )
+        # 添加标注文本
+        fig.add_trace(
+            go.Scatter(
+                x=[label_x],
+                y=[label_y],
+                mode='text',
                 text=[f'2025-04-08<br>X: {apr_8_X:.2f}<br>Y: {apr_8_Y:.2f}'],
                 textfont=dict(
                     size=14,
@@ -387,25 +471,56 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
                     color="purple",
                     weight="bold"
                 ),
-                textposition="top left",
-                hovertemplate='日期: 2025-04-08<br>X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
+                textposition="middle left",
+                legendgroup='apr_8',
+                showlegend=False,
+                hoverinfo='skip'
             )
         )
     
     # 标注2025年4月9日的值（如果存在）
     if apr_9_X is not None and apr_9_Y is not None:
+        # 计算标注位置
+        x_range = max(X.flatten()) - min(X.flatten())
+        y_range = max(Y) - min(Y)
+        label_x = apr_9_X + 0.05 * x_range
+        label_y = apr_9_Y + 0.08 * y_range
+        
+        # 添加标记点
         fig.add_trace(
             go.Scatter(
                 x=[apr_9_X],
                 y=[apr_9_Y],
-                mode='markers+text',
+                mode='markers',
                 name='2025-04-09',
+                legendgroup='apr_9',
                 marker=dict(
                     color='orange',
                     size=15,
                     symbol='diamond',
                     line=dict(color='darkorange', width=2)
                 ),
+                hovertemplate='日期: 2025-04-09<br>X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
+            )
+        )
+        # 添加连接线
+        fig.add_trace(
+            go.Scatter(
+                x=[apr_9_X, label_x],
+                y=[apr_9_Y, label_y],
+                mode='lines',
+                line=dict(color='orange', width=2),
+                legendgroup='apr_9',
+                showlegend=False,
+                hoverinfo='skip'
+            )
+        )
+        # 添加标注文本
+        fig.add_trace(
+            go.Scatter(
+                x=[label_x],
+                y=[label_y],
+                mode='text',
                 text=[f'2025-04-09<br>X: {apr_9_X:.2f}<br>Y: {apr_9_Y:.2f}'],
                 textfont=dict(
                     size=14,
@@ -413,25 +528,113 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
                     color="orange",
                     weight="bold"
                 ),
-                textposition="top right",
-                hovertemplate='日期: 2025-04-09<br>X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
+                textposition="middle right",
+                legendgroup='apr_9',
+                showlegend=False,
+                hoverinfo='skip'
+            )
+        )
+    
+    # 标注2025年3月18日的值（如果存在）
+    if mar_18_X is not None and mar_18_Y is not None:
+        # 计算标注位置
+        x_range = max(X.flatten()) - min(X.flatten())
+        y_range = max(Y) - min(Y)
+        label_x = mar_18_X - 0.05 * x_range
+        label_y = mar_18_Y - 0.08 * y_range
+        
+        # 添加标记点
+        fig.add_trace(
+            go.Scatter(
+                x=[mar_18_X],
+                y=[mar_18_Y],
+                mode='markers',
+                name='2025-03-18',
+                legendgroup='mar_18',
+                marker=dict(
+                    color='cyan',
+                    size=15,
+                    symbol='hexagon',
+                    line=dict(color='darkcyan', width=2)
+                ),
+                hovertemplate='日期: 2025-03-18<br>X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
+            )
+        )
+        # 添加连接线
+        fig.add_trace(
+            go.Scatter(
+                x=[mar_18_X, label_x],
+                y=[mar_18_Y, label_y],
+                mode='lines',
+                line=dict(color='darkcyan', width=2),
+                legendgroup='mar_18',
+                showlegend=False,
+                hoverinfo='skip'
+            )
+        )
+        # 添加标注文本
+        fig.add_trace(
+            go.Scatter(
+                x=[label_x],
+                y=[label_y],
+                mode='text',
+                text=[f'2025-03-18<br>X: {mar_18_X:.2f}<br>Y: {mar_18_Y:.2f}'],
+                textfont=dict(
+                    size=14,
+                    family="Arial, sans-serif",
+                    color="darkcyan",
+                    weight="bold"
+                ),
+                textposition="middle left",
+                legendgroup='mar_18',
+                showlegend=False,
+                hoverinfo='skip'
             )
         )
     
     # 标注特定数据点X=0.68, Y=16.74（如果存在）
     if specific_X is not None and specific_Y is not None and specific_date is not None:
+        # 计算标注位置
+        x_range = max(X.flatten()) - min(X.flatten())
+        y_range = max(Y) - min(Y)
+        label_x = specific_X + 0.07 * x_range
+        label_y = specific_Y
+        
+        # 添加标记点
         fig.add_trace(
             go.Scatter(
                 x=[specific_X],
                 y=[specific_Y],
-                mode='markers+text',
+                mode='markers',
                 name=f'{specific_date.strftime("%Y-%m-%d")}',
+                legendgroup='specific',
                 marker=dict(
                     color='red',
                     size=18,
                     symbol='star',
                     line=dict(color='darkred', width=3)
                 ),
+                hovertemplate=f'日期: {specific_date.strftime("%Y-%m-%d")}<br>X: %{{x:.2f}}<br>Y: %{{y:.2f}}<extra></extra>'
+            )
+        )
+        # 添加连接线
+        fig.add_trace(
+            go.Scatter(
+                x=[specific_X, label_x],
+                y=[specific_Y, label_y],
+                mode='lines',
+                line=dict(color='red', width=2),
+                legendgroup='specific',
+                showlegend=False,
+                hoverinfo='skip'
+            )
+        )
+        # 添加标注文本
+        fig.add_trace(
+            go.Scatter(
+                x=[label_x],
+                y=[label_y],
+                mode='text',
                 text=[f'{specific_date.strftime("%Y-%m-%d")}<br>X: {specific_X:.2f}<br>Y: {specific_Y:.2f}'],
                 textfont=dict(
                     size=16,
@@ -440,7 +643,9 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
                     weight="bold"
                 ),
                 textposition="middle right",
-                hovertemplate=f'日期: {specific_date.strftime("%Y-%m-%d")}<br>X: %{{x:.2f}}<br>Y: %{{y:.2f}}<extra></extra>'
+                legendgroup='specific',
+                showlegend=False,
+                hoverinfo='skip'
             )
         )
     
@@ -463,7 +668,7 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
             linecolor='black'
         ),
         yaxis=dict(
-            title="Y值：恒生科技1年前瞻估值（x）",
+            title=y_axis_title,
             title_font=dict(size=22),  # 从18增大20%到22
             tickfont=dict(size=17),    # 从14增大20%到17
             showline=True,
@@ -481,172 +686,15 @@ def create_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_dat
     
     return fig
 
-# 定义创建简化图表的函数
-def create_simplified_figure(df, X, Y, reg, Y_pred, std_dev, latest_X, latest_Y, latest_date, title):
-    fig = go.Figure()
-    
-    # 添加回归线
-    fig.add_trace(
-        go.Scatter(
-            x=X.flatten(),
-            y=Y_pred,
-            mode='lines',
-            name='回归线',
-            line=dict(color='red', width=3),
-            hovertemplate='X: %{x:.2f}<br>预测Y: %{y:.2f}<extra></extra>'
-        )
-    )
-    
-    # 添加+1倍标准差线
-    fig.add_trace(
-        go.Scatter(
-            x=X.flatten(),
-            y=Y_pred + std_dev,
-            mode='lines',
-            name='+1标准差',
-            line=dict(color='black', width=2, dash='dot'),
-            hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
-        )
-    )
-    
-    # 添加-1倍标准差线
-    fig.add_trace(
-        go.Scatter(
-            x=X.flatten(),
-            y=Y_pred - std_dev,
-            mode='lines',
-            name='-1标准差',
-            line=dict(color='black', width=2, dash='dot'),
-            hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<extra></extra>'
-        )
-    )
-    
-    # 计算降息预期的新值
-    rate_cut_X = latest_X + 0.4  # X值增加0.4
-    rate_cut_Y = latest_Y  # Y值保持与最新值相同，不变
-    
-    # 标注最新值
-    fig.add_trace(
-        go.Scatter(
-            x=[rate_cut_X],
-            y=[rate_cut_Y],
-            mode='markers+text',
-            name='最新值',
-            marker=dict(
-                color='yellow',  # 亮黄色
-                size=13.26,  # 与最新值相同大小
-                symbol='diamond'
-            ),
-            text=[f'最新值<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {rate_cut_X:.2f}<br>Y: {rate_cut_Y:.2f}'],
-            textfont=dict(
-                size=15.4,
-                family="Arial, sans-serif",
-                color="black",
-                weight="bold"
-            ),
-            textposition="top right",  # 放在图表右上方空白处
-            hovertemplate='日期: %{text}<extra></extra>'
-        )
-    )
-    
-    # 计算更新后的网格加仓点位对应估值（在回归线上）
-    grid_X = rate_cut_X  # X值与降息预期点相同
-    grid_Y = reg.predict([[grid_X]])[0]  # Y值在回归线上
-    
-    # 标注更新后的网格加仓点位对应估值
-    fig.add_trace(
-        go.Scatter(
-            x=[grid_X],
-            y=[grid_Y],
-            mode='markers+text',
-            name='更新后的网格加仓点位对应估值',
-            marker=dict(
-                color='blue',  # 蓝色
-                size=13.26,  # 与其他点相同大小
-                symbol='circle'  # 使用圆形区分
-            ),
-            text=[f'更新后的网格加仓点位对应估值<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {grid_X:.2f}<br>Y: {grid_Y:.2f}'],
-            textfont=dict(
-                size=15.4,
-                family="Arial, sans-serif",
-                color="black",
-                weight="bold"
-            ),
-            textposition="bottom right",  # 避免与其他标签重叠
-            hovertemplate='日期: %{text}<extra></extra>'
-        )
-    )
-    
-    # 计算考虑EPS后的网格加仓点位对应估值（回归线的95%）
-    eps_X = rate_cut_X  # X值与降息预期点相同
-    eps_Y = reg.predict([[eps_X]])[0] * 0.95  # Y值为回归线的95%
-    
-    # 标注考虑EPS后的网格加仓点位对应估值
-    fig.add_trace(
-        go.Scatter(
-            x=[eps_X],
-            y=[eps_Y],
-            mode='markers+text',
-            name='考虑EPS后的网格加仓点位对应估值',
-            marker=dict(
-                color='green',  # 绿色
-                size=13.26,  # 与其他点相同大小
-                symbol='square'  # 使用方形区分
-            ),
-            text=[f'考虑EPS后的网格加仓点位对应估值<br>日期: {latest_date.strftime("%Y-%m-%d")}<br>X: {eps_X:.2f}<br>Y: {eps_Y:.2f}'],
-            textfont=dict(
-                size=15.4,
-                family="Arial, sans-serif",
-                color="black",
-                weight="bold"
-            ),
-            textposition="bottom left",  # 避免与其他标签重叠
-            hovertemplate='日期: %{text}<extra></extra>'
-        )
-    )
-    
-    # 更新布局
-    fig.update_layout(
-        title=title,
-        title_font=dict(size=24),
-        xaxis=dict(
-            title="X值：中美10年期国债收益率利差（%）",
-            title_font=dict(size=22),
-            tickfont=dict(size=17),
-            showline=True,
-            linewidth=2,
-            linecolor='black'
-        ),
-        yaxis=dict(
-            title="Y值：恒生科技1年前瞻估值（x）",
-            title_font=dict(size=22),
-            tickfont=dict(size=17),
-            showline=True,
-            linewidth=2,
-            linecolor='black'
-        ),
-        legend=dict(
-            font=dict(size=17)
-        ),
-        showlegend=True,
-        plot_bgcolor='white',
-        height=600,
-        width=1200
-    )
-    
-    return fig
 
 # 创建Dash应用
 app = Dash(__name__)
 
-# 创建三个图表
+# 创建两个图表
 fig1 = create_figure(df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1, size1, 
-                     "恒生科技1年前瞻估值vs中美利差回归分析", oct_2_X1, oct_2_Y1, apr_8_X1, apr_8_Y1, apr_9_X1, apr_9_Y1, specific_date1, specific_X1, specific_Y1, jan_feb_X1, jan_feb_Y1, jan_feb_dates1)
+                     "恒生科技1年前瞻估值vs中美利差回归分析", oct_2_X1, oct_2_Y1, apr_8_X1, apr_8_Y1, apr_9_X1, apr_9_Y1, mar_18_X1, mar_18_Y1, specific_date1, specific_X1, specific_Y1, jan_feb_X1, jan_feb_Y1, jan_feb_dates1)
 fig2 = create_figure(df2, X2, Y2, reg2, Y2_pred, std_dev2, latest_X2, latest_Y2, latest_date2, size2, 
-                     "恒生科技1年前瞻估值vs中美利差回归分析", oct_2_X2, oct_2_Y2, apr_8_X2, apr_8_Y2, apr_9_X2, apr_9_Y2, specific_date2, specific_X2, specific_Y2, jan_feb_X2, jan_feb_Y2, jan_feb_dates2)
-# 创建简化图表（第一个数据集）
-fig3 = create_simplified_figure(df1, X1, Y1, reg1, Y1_pred, std_dev1, latest_X1, latest_Y1, latest_date1,
-                               "简化视图：恒生科技1年前瞻估值vs中美利差回归分析")
+                     "恒生科技1年前瞻估值vs中美利差回归分析", oct_2_X2, oct_2_Y2, apr_8_X2, apr_8_Y2, apr_9_X2, apr_9_Y2, mar_18_X2, mar_18_Y2, specific_date2, specific_X2, specific_Y2, jan_feb_X2, jan_feb_Y2, jan_feb_dates2, "Y值：恒生科技指数点位")
 
 # 创建Dash布局
 app.layout = html.Div([
@@ -689,30 +737,8 @@ app.layout = html.Div([
         }
     ),
     
-    # 分隔线
-    html.Hr(style={'margin': '30px 0'}),
-    
-    # 第三个图表（简化视图）
-    html.Div([
-        html.H3(f"简化视图 - 第一个数据集回归方程: Y = {reg1.coef_[0]:.4f} * X + {reg1.intercept_:.4f}", 
-                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px'}),
-        html.H3(f"最新值: X = {latest_X1 + 0.4:.2f}, Y = {latest_Y1:.2f}", 
-                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'orange'}),
-        html.H3(f"更新后的网格加仓点位对应估值: X = {latest_X1 + 0.4:.2f}, Y = {reg1.predict([[latest_X1 + 0.4]])[0]:.2f}", 
-                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'blue'}),
-        html.H3(f"考虑EPS后的网格加仓点位对应估值: X = {latest_X1 + 0.4:.2f}, Y = {reg1.predict([[latest_X1 + 0.4]])[0] * 0.95:.2f}", 
-                style={'margin': '10px', 'textAlign': 'center', 'fontSize': '24px', 'color': 'green'})
-    ]),
-    dcc.Graph(
-        id='regression-chart-3',
-        figure=fig3,
-        config={
-            'displayModeBar': True,
-            'scrollZoom': True
-        }
-    )
 ])
 
 if __name__ == '__main__':
     print("应用已启动，请访问 http://127.0.0.1:8050/")
-    app.run_server(debug=True)
+    app.run(debug=True)
